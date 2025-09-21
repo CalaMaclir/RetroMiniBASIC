@@ -661,3 +661,86 @@ Retro Mini BASIC interpreter は、古典的なBASIC文法をベースに、C#�
 ---
 
 以上。VM の内部仕様に沿って拡張・最適化・デバッグを行う際のリファレンスとしてご利用ください。
+
+
+
+# Retro Mini BASIC (IL) — VM 設計書
+
+本書は **Retro Mini BASIC interpreter** の仮想マシン（VM）実装を理解・拡張するための技術ドキュメントです。  
+対象は `VM.cs`（実行機）、`Compiler.cs`（IL 生成）、`GfxHost.cs`（描画）、`Program.cs`（REPL）に跨る挙動ですが、**VM 観点**での仕様を「readme 形式」で網羅します。
+
+---
+
+## 1. 全体構成（アーキテクチャ）
+
+```
+┌──────────────┐    1) 行番号つきソース
+│  Program.cs  │  ────────────────────────────┐
+└──────┬───────┘                              │
+       │ 2) コンパイル（構文解析・IL生成）   │
+┌──────▼───────┐                              │
+│ Compiler.cs  │  ──▶ CompiledProgram ───────┼─▶ 3) VM 実行
+└──────┬───────┘                              │
+       │（記号表/ジャンプ表を内包）          │
+┌──────▼───────┐                              │
+│    VM.cs     │  ◀───────────────────────────┘
+└───┬─────┬────┘
+    │     │
+    │     └────────► GfxHost.cs（描画/UI）
+    │
+    └──────────────► Console I/O（INPUT/PRINT）
+```
+
+- `Compiler.cs` は **行番号付きプログラム**を **IL 命令列（Op[]）** に変換します。
+- `VM.cs` は **Op[]** を 0 から順に解釈し、**スタック実行**・**変数/配列領域**・**制御スタック**を用いてプログラムを進行。
+- グラフィックス命令は VM から `GfxHost` に委譲されます。
+
+---
+
+## 2. データモデル
+
+- 数値は `double`、文字列は `string`。
+- 真偽判定は 0=偽 / 0以外=真。  
+- スカラ変数は `num[]`, `str[]` に格納。  
+- 配列は 1D/2D をサポートし、DIM で確保。  
+
+---
+
+## 3. 実行モデル
+
+- スタックマシン方式。  
+- 算術/比較/論理はスタックの値をポップ→演算→プッシュ。  
+- GOSUB/RETURN, FOR/NEXT などは制御スタックで管理。  
+
+---
+
+## 4. IL 命令セット (OpCode)
+
+| 区分 | 命令 | 内容 |
+|------|------|------|
+| スタック | PUSH_NUM, PUSH_STR | 定数を積む |
+|        | LOAD, STORE | スカラ変数読み書き |
+| 配列   | DIM_ARR | 配列確保 (1D/2D) |
+|        | LOAD_ARR, STORE_ARR | 配列要素の読み書き |
+| 算術   | ADD, SUB, MUL, DIV, POW, NEG, MOD | 四則演算・累乗・符号反転・剰余 |
+| 論理/比較 | CEQ, CNE, CLT, CLE, CGT, CGE, NOT, AND, OR | 比較・論理演算 |
+| 制御   | JMP, JZ | 無条件/条件分岐 |
+|        | FOR_INIT, FOR_CHECK, FOR_INCR | FOR/NEXT |
+|        | GOSUB, RETSUB | サブルーチン呼出し |
+|        | ON_GOTO, ON_GOSUB | ON GOTO/GOSUB |
+| 関数呼出 | CALLFN | FnId に基づく関数/命令呼出 |
+| 入出力 | PRINT, PRINT_SPC, PRINT_SUPPRESS_NL, PRINT_NL | PRINT 系 |
+|        | INPUT | 入力 (FnId.INPUT) |
+| グラフィック | CALLFN(FnId.SCREEN, GCOLOR 等) | グラフィック処理 |
+| FORTH互換 | DUP, DROP, SWAP, OVER, ROT | スタック操作 |
+|        | PRINT_STACK, PRINT_CR, EMIT_CHAR | 出力関連 |
+|        | BAND, BOR, BXOR | ビット演算 |
+| 終了   | HALT | 実行停止 |
+
+---
+
+## 5. 備考
+
+- 本 README.md は BASIC モードに特化。FORTH は別途仕様。  
+- IL 命令セットは BASIC/FORTH 共通の VM 上で実行される。
+
