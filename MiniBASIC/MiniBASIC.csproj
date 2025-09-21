@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!-- コンソールを出す: Exe / 隠す: WinExe -->
+    <OutputType>Exe</OutputType>
+
+    <!-- 使っているバージョンに合わせて。例: net8.0-windows / net9.0-windows -->
+    <TargetFramework>net9.0-windows7.0</TargetFramework>
+
+    <!-- WinFormsを有効化（これが肝） -->
+    <UseWindowsForms>true</UseWindowsForms>
+
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Platforms>AnyCPU;x64</Platforms>
+    <StartupObject>MiniBasicIL.Program</StartupObject>
+
+    <!-- 非Windowsでビルドする場合は付けてもOK（任意） -->
+    <!-- <EnableWindowsTargeting>true</EnableWindowsTargeting> -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+</Project>
