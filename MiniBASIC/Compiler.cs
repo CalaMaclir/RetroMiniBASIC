@@ -173,7 +173,8 @@ namespace MiniBasicIL
                 case "BOX": CompileGraphicsCall("BOX"); return;
                 case "FLUSH": CompileGraphicsCall("FLUSH"); return;
                 case "COLORHSV": CompileGraphicsCall("COLORHSV"); return;
-                case "SAVEIMAGE": CompileGraphicsCall("SAVEIMAGE"); return;
+                case "SAVEIMAGE": CompileSaveImage(); return;
+
                 case "RANDOMIZE": CompileGraphicsCall("RANDOMIZE"); return;
                 case "SLEEP": CompileGraphicsCall("SLEEP"); return;
                 case "LOCATE": CompileGraphicsCall("LOCATE"); return;
@@ -736,6 +737,39 @@ namespace MiniBasicIL
             onTablesLineNums.Add(lines);
             Emit(new Op(isGosub ? OpCode.ON_GOSUB : OpCode.ON_GOTO, a: idx));
         }
+
+        // SAVEIMAGE <string-expr> または SAVEIMAGE(<string-expr>)
+        // 引数は厳密に 1 個のみ許可。文字列変数/リテラル/連結式すべてOK。
+        void CompileSaveImage()
+        {
+            int argc = 0;
+
+            if (Match(TokT.Sym, "("))
+            {
+                if (!Match(TokT.Sym, ")"))
+                {
+                    CompileExpression(); // ← 文字列式OK（"a"+"b" など）
+                    argc++;
+                    // 2個目以降は明示エラー
+                    if (Match(TokT.Sym, ",")) throw new Exception("SAVEIMAGE: too many arguments");
+                    Expect(TokT.Sym, ")");
+                }
+            }
+            else
+            {
+                // カッコなし形式： SAVEIMAGE 式
+                // ※ CompileGraphicsCall のように「空白で複数引数」を許可しない
+                CompileExpression();
+                argc++;
+            }
+
+            if (argc != 1) throw new Exception("SAVEIMAGE: exactly 1 argument required");
+
+            // 1引数で CALLFN(GSAVE) を発行（VM は1つだけポップして保存）
+            Emit(new Op(OpCode.CALLFN, a: FnId.GSAVE, b: 1));
+        }
+
+
 
         // ★ グラフィック命令の文法（NAME (args) でも NAME args でも可）
         void CompileGraphicsCall(string name)

@@ -16,6 +16,20 @@ namespace MiniBasicIL
         static ForthILCompiler forthCompiler = new ForthILCompiler();
         static VM? forthVm = null;
 
+        // Program.cs 先頭の Program クラス内に追加（Mainの外）
+        static string? ParseQuotedFileArg(string cmdline, int cmdLen)
+        {
+            // cmdLen は "SAVE " / "LOAD " の長さ（4）を想定
+            if (cmdline.Length <= cmdLen) return null;
+            var rest = cmdline.Substring(cmdLen).Trim();
+            if (rest.Length < 2 || rest[0] != '"') return null;
+
+            int close = rest.IndexOf('"', 1);
+            if (close < 0) return null;  // 閉じクォートなし
+            return rest.Substring(1, close - 1);
+        }
+
+
         static void ReportRunError(Exception ex, VM? vm, string contextLabel)
         {
             if (contextLabel == "direct")
@@ -87,12 +101,16 @@ namespace MiniBasicIL
                     Console.WriteLine("OK (BASIC program + FORTH dict + FORTH runtime cleared)");
                     continue;
                 }
-                // ... SWITCHFORTH / SWITCHBASIC / CLEARSTACK / CLEARALL の分岐の後あたりに
-
-                // SAVE filename
-                if (upper.StartsWith("SAVE "))
+                // Main 内の SAVE/LOAD 分岐を書き換え
+                // --- SAVE ---
+                if (upper.StartsWith("SAVE"))
                 {
-                    var path = trimmed.Substring(5).Trim();
+                    var path = ParseQuotedFileArg(trimmed, 4);
+                    if (string.IsNullOrEmpty(path))
+                    {
+                        Console.WriteLine(@"USAGE: SAVE ""filename.bas""");
+                        continue;
+                    }
                     try
                     {
                         using var sw = new System.IO.StreamWriter(path, false, System.Text.Encoding.UTF8);
@@ -107,10 +125,15 @@ namespace MiniBasicIL
                     continue;
                 }
 
-                // LOAD filename
-                if (upper.StartsWith("LOAD "))
+                // --- LOAD ---
+                if (upper.StartsWith("LOAD"))
                 {
-                    var path = trimmed.Substring(5).Trim();
+                    var path = ParseQuotedFileArg(trimmed, 4);
+                    if (string.IsNullOrEmpty(path))
+                    {
+                        Console.WriteLine(@"USAGE: LOAD ""filename.bas""");
+                        continue;
+                    }
                     try
                     {
                         var newProg = new SortedDictionary<int, string>();
@@ -133,7 +156,6 @@ namespace MiniBasicIL
                     }
                     continue;
                 }
-
 
                 try
                 {
