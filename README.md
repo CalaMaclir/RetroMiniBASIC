@@ -209,13 +209,13 @@ Retro Mini BASIC interpreter は、古典的なBASIC文法をベースに、C#�
 
 ## 2. マンデルブロ集合（グラフィック）
 ```
-10 SCREEN 640,480
+10 SCREEN 1280,960
 20 CLS
 30 MAX=100
-40 FOR Y=0 TO 479
-50 CI = -1.2 + Y*(2.4/479)
-60 FOR X=0 TO 639
-70 CR = -2.2 + X*(3.2/639)
+40 FOR Y=0 TO 959
+50 CI = -1.2 + Y*(2.4/959)
+60 FOR X=0 TO 1279
+70 CR = -2.2 + X*(3.2/1279)
 80 XR=0: XI=0
 90 I=0
 100 FOR I=0 TO MAX
@@ -238,15 +238,15 @@ Retro Mini BASIC interpreter は、古典的なBASIC文法をベースに、C#�
 
 ## 3. ジュリア集合
 ```
-10 SCREEN 640,480
+10 SCREEN 1280,960
 20 CLS
 30 MAX=120
 40 CR=-0.7
 50 CI=0.27015
-60 FOR Y=0 TO 479
-70 Y0 = -1.2 + Y*(2.4/479)
-80 FOR X=0 TO 639
-90 X0 = -2.2 + X*(3.2/639)
+60 FOR Y=0 TO 959
+70 Y0 = -1.2 + Y*(2.4/959)
+80 FOR X=0 TO 1279
+90 X0 = -2.2 + X*(3.2/1279)
 100 XR = X0
 110 XI = Y0
 120 I=0
@@ -370,6 +370,73 @@ Retro Mini BASIC interpreter は、古典的なBASIC文法をベースに、C#�
 440  FLUSH
 450  SLEEP 16
 460 LOOP
+```
+## 6. シェルピンスキーの三角形
+```
+10 SCREEN 800,800
+20 CLS
+30 DIM VX(2), VY(2)
+40 VX(0)=400: VY(0)=0
+50 VX(1)=0:   VY(1)=800
+60 VX(2)=800: VY(2)=800
+70 X=RNDI(799): Y=RNDI(799)
+80 FOR I=1 TO 50000
+90   K=RNDI(2)
+100  X=(X+VX(K))/2
+110  Y=(Y+VY(K))/2
+120  COLOR 255,255,255
+130  PSET X,Y
+140  IF I MOD 2000=0 THEN FLUSH
+150 NEXT I
+160 FLUSH
+```
+
+## 7. バーンスレイのシダ
+```
+10 SCREEN 800,800
+20 CLS
+30 X=0: Y=0
+40 FOR I=1 TO 50000
+50 R=RND
+60 IF R<0.01 THEN XX=0 : YY=0.16*Y
+70 IF R>=0.01 AND R<0.86 THEN XX=0.85*X+0.04*Y : YY=-0.04*X+0.85*Y+1.6
+80 IF R>=0.86 AND R<0.93 THEN XX=0.20*X-0.26*Y : YY=0.23*X+0.22*Y+1.6
+90 IF R>=0.93 THEN XX=-0.15*X+0.28*Y : YY=0.26*X+0.24*Y+0.44
+100 X=XX: Y=YY
+110 COLOR 0,255,0
+120 PSET 400+X*60, 800-Y*60
+130 NEXT I
+140 FLUSH
+```
+
+## 8. ペイントデモ
+```
+10 SCREEN 1920,1080
+20 N=100        ' 1回あたりの四角形数
+30 REP=500      ' 繰り返し回数
+40 DIM CX(N-1), CY(N-1)   ' 各BOXの塗り座標（中心）を保持
+50 FOR T=1 TO REP
+60   CLS
+70   COLOR 255,255,255
+80   ' --- 100個の四角形（枠）を描画し、中心点を保存 ---
+90   FOR I=0 TO N-1
+100     X1=RNDI(1910): Y1=RNDI(1070)
+110     W=20+RNDI(400): H=20+RNDI(300)
+120     X2=X1+W: IF X2>1919 THEN X2=1919
+130     Y2=Y1+H: IF Y2>1079 THEN Y2=1079
+140     BOX X1,Y1,X2,Y2,0          ' 枠のみ（fill=0）
+150     CX(I)=INT((X1+X2)/2)       ' 塗りの種点（中心）
+160     CY(I)=INT((Y1+Y2)/2)
+170   NEXT I
+180   ' --- 各BOXの中をランダム色でPAINT ---
+190   FOR I=0 TO N-1
+200     COLOR RNDI(255),RNDI(255),RNDI(255)
+210     PAINT CX(I),CY(I)
+220     'FLUSH
+230   NEXT I
+235 FLUSH
+240 NEXT T
+250 END
 ```
 
 # Retro Mini BASIC (IL) — VM 設計書
