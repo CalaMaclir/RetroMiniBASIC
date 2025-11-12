@@ -439,36 +439,7 @@ Retro Mini BASIC interpreter は、古典的なBASIC文法をベースに、C#�
 250 END
 ```
 
-## 9. Polygons
-https://michaeladcock.info/temp/PicoCalc_MMBasic.html
-```
-10 SCREEN 1920,1080
-20 N=100        ' 1回あたりの四角形数
-30 REP=500      ' 繰り返し回数
-40 DIM CX(N-1), CY(N-1)   ' 各BOXの塗り座標（中心）を保持
-50 FOR T=1 TO REP
-60   CLS
-70   COLOR 255,255,255
-80   ' --- 100個の四角形（枠）を描画し、中心点を保存 ---
-90   FOR I=0 TO N-1
-100     X1=RNDI(1910): Y1=RNDI(1070)
-110     W=20+RNDI(400): H=20+RNDI(300)
-120     X2=X1+W: IF X2>1919 THEN X2=1919
-130     Y2=Y1+H: IF Y2>1079 THEN Y2=1079
-140     BOX X1,Y1,X2,Y2,0          ' 枠のみ（fill=0）
-150     CX(I)=INT((X1+X2)/2)       ' 塗りの種点（中心）
-160     CY(I)=INT((Y1+Y2)/2)
-170   NEXT I
-180   ' --- 各BOXの中をランダム色でPAINT ---
-190   FOR I=0 TO N-1
-200     COLOR RNDI(255),RNDI(255),RNDI(255)
-210     PAINT CX(I),CY(I)
-220     'FLUSH
-230   NEXT I
-235 FLUSH
-240 NEXT T
-250 END
-```
+
 
 # Retro Mini BASIC (IL) — VM 設計書
 
